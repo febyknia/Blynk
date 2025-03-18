@@ -147,4 +147,4 @@ Results from Visual Studio Code
 Result from Blynk
 <img width="1020" alt="12" src="https://github.com/user-attachments/assets/2f72c430-3e1f-41ad-8547-97b527bbfe9b" />
 
-For more details, please follow the implementation steps in the temperature check report (pdf).
+For more details, please follow the implementation steps in the blynk check report (pdf).

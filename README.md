@@ -9,8 +9,8 @@ This project is a temperature check activity using Wokwi based on ESP32 Microcon
 
 ## **B. Diagram**
 This diagram was created using the ESP32 Microcontroller based Wokwi simulation.
+<img width="1020" alt="12" src="https://github.com/user-attachments/assets/e8f9e29b-a189-448f-82d6-536ca87975f4" />
 
-<img width="1020" alt="4" src="https://github.com/user-attachments/assets/fa6efb88-a954-4043-ad7b-6e3d96b17a6a" />
 
 
 
@@ -74,7 +74,7 @@ This diagram was created using the ESP32 Microcontroller based Wokwi simulation.
 ```
 
 ## **C. Program Code**
-This program code is to set the traffic lights to turn on alternately according to a predetermined duration.
+This program code is for setting the temperature and humidity, as well as the connection to Blynk.
 
 ```cpp
 #define BLYNK_PRINT Serial
@@ -140,11 +140,11 @@ void loop() {
 }
 ```
 ## **C. Result**
-This program code is to set the traffic lights to turn on alternately according to a predetermined duration.
-Results from Visual Studio Code
-<img width="1020" alt="6" src="https://github.com/user-attachments/assets/1fdb3243-62e8-499e-84ba-9bc77c0b8c3b" />
+Temperature and humidity successfully connect with blynk and run according to the commands made, DHT22 on temperature and humidity can also be edited, then on the blynk device will change to online and display Temperature and Humidity. 
+<img width="1020" alt="7" src="https://github.com/user-attachments/assets/f77e2bbb-d9f7-4154-9bf4-1183c63f352b" />
 
-Result from Blynk
+<img width="1020" alt="9" src="https://github.com/user-attachments/assets/b097be45-2224-46d3-bb81-ae4feea44752" />
+
 <img width="1020" alt="12" src="https://github.com/user-attachments/assets/2f72c430-3e1f-41ad-8547-97b527bbfe9b" />
 
 For more details, please follow the implementation steps in the blynk check report (pdf).

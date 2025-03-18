@@ -22,43 +22,52 @@ This diagram was created using the ESP32 Microcontroller based Wokwi simulation.
   "author": "Anonymous maker",
   "editor": "wokwi",
   "parts": [
+    { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": -278.9, "left": 52.76, "attrs": {} },
+    { "type": "wokwi-led", "id": "led1", "top": -262.8, "left": 3.8, "attrs": { "color": "red" } },
     {
-      "type": "board-esp32-devkit-c-v4",
-      "id": "esp",
-      "top": 28.8,
-      "left": -110.36,
-      "rotate": 9000,
-      "attrs": {}
-    },
-    { "type": "wokwi-dht22", "id": "dht1", "top": 557.1, "left": 90.6, "attrs": {} },
-    {
-      "type": "wokwi-photoresistor-sensor",
-      "id": "ldr1",
-      "top": 300.8,
-      "left": -277.6,
-      "attrs": {}
+      "type": "wokwi-resistor",
+      "id": "r5",
+      "top": -196.8,
+      "left": -0.55,
+      "rotate": 90,
+      "attrs": { "value": "1000" }
     },
     {
-      "type": "board-ssd1306",
-      "id": "oled1",
-      "top": 406.34,
-      "left": -38.17,
-      "attrs": { "i2cAddress": "0x3c" }
+      "type": "wokwi-dht22",
+      "id": "dht1",
+      "top": -258.9,
+      "left": 177,
+      "attrs": { "temperature": "58.7", "humidity": "77" }
     }
   ],
   "connections": [
-    [ "esp:TX", "$serialMonitor:RX", "", [] ],
-    [ "esp:RX", "$serialMonitor:TX", "", [] ],
-    [ "dht1:DATA", "esp:19", "green", [ "v0" ] ],
-    [ "oled1:SDA", "esp:21", "black", [ "v0" ] ],
-    [ "oled1:SCL", "esp:22", "black", [ "v0" ] ],
-    [ "oled1:GND", "esp:GND.2", "black", [ "v0" ] ],
-    [ "oled1:VCC", "esp:3V3", "black", [ "v105.6", "h-105.45" ] ],
-    [ "dht1:SDA", "esp:19", "black", [ "v0" ] ],
-    [ "dht1:VCC", "esp:3V3", "black", [ "v0", "h-259.2" ] ],
-    [ "ldr1:AO", "esp:34", "black", [ "h-19.2", "v-0.7" ] ],
-    [ "ldr1:VCC", "esp:3V3", "black", [ "h-9.6", "v96" ] ],
-    [ "ldr1:GND", "dht1:NC", "black", [ "h9.6", "v335.6", "h259.2" ] ]
+    [ "esp:TX0", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX0", "$serialMonitor:TX", "", [] ],
+    [ "led1:A", "r5:1", "red", [ "v0" ] ],
+    [ "led1:C", "esp:GND.2", "black", [ "v0" ] ],
+    [ "esp:D15", "dht1:SDA", "black", [ "h0" ] ],
+    [ "esp:GND.1", "dht1:GND", "black", [ "h0" ] ],
+    [ "esp:D13", "r5:2", "black", [ "h0" ] ],
+    [
+      "dht1:VCC",
+      "esp:VIN",
+      "black",
+      [
+        "v0",
+        "h-28.8",
+        "v-134.4",
+        "h-115.2",
+        "v134.4",
+        "h-9.6",
+        "v0",
+        "h0",
+        "v-115.2",
+        "h-28.8",
+        "v134.4",
+        "h0",
+        "v9.6"
+      ]
+    ]
   ],
   "dependencies": {}
 }
@@ -68,86 +77,74 @@ This diagram was created using the ESP32 Microcontroller based Wokwi simulation.
 This program code is to set the traffic lights to turn on alternately according to a predetermined duration.
 
 ```cpp
-#include <Arduino.h>
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-#include <DHT.h>
+#define BLYNK_PRINT Serial
 
-#define DHTPIN 19
-#define DHTTYPE DHT22
-#define TIMEDHT 1000
+#define DHT_PIN 15 
+#define LED_PIN 13 
 
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64
+#define BLYNK_AUTH_TOKEN "c-ek_3kRGcQWdf1CPoGC3l5PmYD9LMZ6"
+#define BLYNK_TEMPLATE_ID "TMPL6n36jrzSi"
+#define BLYNK_TEMPLATE_NAME "Feby"
 
-#define LDR_PIN 34 
+#include <WiFi.h>
+#include <BlynkSimpleEsp32.h>
+#include <DHTesp.h>
 
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "Wokwi-GUEST"; 
+char pass[] = ""; 
 
-float humidity, celsius;
-uint32_t timerDHT = TIMEDHT;
-DHT dht(DHTPIN, DHTTYPE);
+DHTesp dht;
+BlynkTimer timer;
 
+void sendSensor() {
+  float temperature = dht.getTemperature();
+  float humidity = dht.getHumidity();
 
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
-
-
-void getTemperature() {
-  if ((millis() - timerDHT) > TIMEDHT) {
-    timerDHT = millis();
-    humidity = dht.readHumidity();
-    celsius = dht.readTemperature();
-
-    if (isnan(humidity) || isnan(celsius)) {
-      Serial.println("Gagal membaca sensor DHT!");
-      return;
-    }
+  if (isnan(temperature) || isnan(humidity)) {
+    Serial.println("Gagal membaca data DHT22!");
+    return;
   }
+
+  Blynk.virtualWrite(V0, temperature);
+  Blynk.virtualWrite(V1, humidity);
+
+  Serial.print("Suhu: ");
+  Serial.print(temperature);
+  Serial.print("°C  -  Kelembaban: ");
+  Serial.print(humidity);
+  Serial.println("%");
+}
+
+BLYNK_WRITE(V2) {
+  int ledState = param.asInt(); 
+  digitalWrite(LED_PIN, ledState);
+  Serial.println(ledState ? "LED ON" : "LED OFF");
 }
 
 void setup() {
   Serial.begin(115200);
-  dht.begin();
   
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    Serial.println("OLED gagal diinisialisasi");
-    for (;;);
-  }
+  Blynk.begin(auth, ssid, pass);
+  dht.setup(DHT_PIN, DHTesp::DHT22);
   
-  display.clearDisplay();
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
+
+  timer.setInterval(2000L, sendSensor); 
 }
 
 void loop() {
-  getTemperature();
-  int lightValue = analogRead(LDR_PIN); 
-  
-  Serial.print("Temp: ");
-  Serial.print(celsius);
-  Serial.print(" C, Humidity: ");
-  Serial.print(humidity);
-  Serial.print("%, Light: ");
-  Serial.println(lightValue);
-
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  
-  display.setCursor(0, 0);
-  display.print("Temp: ");
-  display.print(celsius);
-  display.println(" C");
-
-  display.setCursor(0, 16);
-  display.print("Humidity: ");
-  display.print(humidity);
-  display.println(" %");
-
-  display.setCursor(0, 32);
-  display.print("Light: ");
-  display.print(lightValue);
-
-  display.display();
-  delay(1000);
+  Blynk.run();
+  timer.run();
 }
 ```
+## **C. Result**
+This program code is to set the traffic lights to turn on alternately according to a predetermined duration.
+Results from Visual Studio Code
+<img width="1020" alt="6" src="https://github.com/user-attachments/assets/1fdb3243-62e8-499e-84ba-9bc77c0b8c3b" />
+
+Result from Blynk
+<img width="1020" alt="12" src="https://github.com/user-attachments/assets/2f72c430-3e1f-41ad-8547-97b527bbfe9b" />
+
 For more details, please follow the implementation steps in the temperature check report (pdf).
